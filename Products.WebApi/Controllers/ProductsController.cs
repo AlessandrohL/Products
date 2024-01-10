@@ -36,7 +36,16 @@ namespace Products.WebApi.Controllers
         {
             var result = await _productService.GetProductAsync(categoryId, id);
 
-            return result.Match<IActionResult>(Ok, NotFound);
+            if (result.IsError)
+            {
+                return result.Error!.Type switch
+                {
+                    ErrorType.NotFound => NotFound(result.Error!),
+                    _ => BadRequest("An unexpected error occurred.")
+                };
+            }
+
+            return Ok(result.Value);
         }
 
         [HttpPost]
@@ -46,12 +55,19 @@ namespace Products.WebApi.Controllers
         {
             var result = await _productService.CreateProductAsync(categoryId, productDto);
 
-            return result.Match<IActionResult>(
-                createdProduct => CreatedAtRoute(
-                    nameof(GetProduct), 
-                    new { categoryId, id = createdProduct!.Id },
-                    createdProduct),
-                NotFound);
+            if (result.IsError)
+            {
+                return result.Error!.Type switch
+                {
+                    ErrorType.NotFound => NotFound(result.Error!),
+                    _ => BadRequest("An unexpected error occurred.")
+                };
+            }
+
+            return CreatedAtRoute(
+                nameof(GetProduct), 
+                new { categoryId, id = result.Value!.Id },
+                result.Value);
         }
 
         [HttpPut("{id:guid}")]
@@ -62,7 +78,16 @@ namespace Products.WebApi.Controllers
         {
             var result = await _productService.UpdateProductAsync(categoryId, id, productDto);
 
-            return result.Match<IActionResult>(Ok, NotFound);
+            if (result.IsError)
+            {
+                return result.Error!.Type switch
+                {
+                    ErrorType.NotFound => NotFound(result.Error!),
+                    _ => BadRequest("And unexpected error ocurred.")
+                };
+            }
+
+            return Ok(result.Value);
         }
 
         [HttpDelete("{id:guid}")]
@@ -72,7 +97,16 @@ namespace Products.WebApi.Controllers
         {
             var result = await _productService.DeleteProductAsync(categoryId, id);
 
-            return result.Match<IActionResult>((s) => NoContent(), NotFound);
+            if (result.IsError)
+            {
+                return result.Error!.Type switch
+                {
+                    ErrorType.NotFound => NotFound(result.Error!),
+                    _ => BadRequest("And unexpected error ocurred.")
+                };
+            }
+
+            return NoContent();
         }
     }
 }

@@ -8,6 +8,8 @@ namespace Products.Domain.Errors
 {
     public static class CategoryErrors
     {
-        public const string CategoryNotFound = "La categoría no se encontró.";
+        public static Error NotFound(Guid id) => new(
+            ErrorType.NotFound, $"The Category with Id '{id}' was not found");
+
     }
 }

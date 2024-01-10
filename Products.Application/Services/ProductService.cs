@@ -33,9 +33,12 @@ namespace Products.Application.Services
                 .IsCategoryExists(categoryId);
 
             if (!categoryExists)
-                return new Error(nameof(CategoryErrors.CategoryNotFound), CategoryErrors.CategoryNotFound);
+            {
+                return CategoryErrors.NotFound(categoryId);
+            }
 
-            var productsDb = await _unitOfWork.Product.FindProductsAsync(categoryId, request);
+            var productsDb = await _unitOfWork.Product
+                .FindProductsAsync(categoryId, request);
 
             var productsDto = _mapper.Map<List<ProductDto>>(productsDb);
 
@@ -48,13 +51,17 @@ namespace Products.Application.Services
                 .IsCategoryExists(categoryId);
 
             if (!categoryExists)
-                return new Error(nameof(CategoryErrors.CategoryNotFound), CategoryErrors.CategoryNotFound);
+            {
+                return CategoryErrors.NotFound(categoryId);
+            }
 
             var product = await _unitOfWork.Product
                 .FindProductByIdAsync(categoryId, productId, false);
 
-            if (product is null) 
-                return new Error(nameof(ProductErrors.ProductNotFound), ProductErrors.ProductNotFound);
+            if (product is null)
+            {
+                return ProductErrors.NotFound(productId);
+            }
 
             return _mapper.Map<ProductDto>(product);
         }
@@ -67,10 +74,13 @@ namespace Products.Application.Services
                 .IsCategoryExists(categoryId);
 
             if (!categoryExists)
-                return new Error(nameof(CategoryErrors.CategoryNotFound), CategoryErrors.CategoryNotFound);
+            {
+                return CategoryErrors.NotFound(categoryId);
+            }
 
             var product = _mapper.Map<Product>(productDto);
             product.CategoryId = categoryId;
+
             _unitOfWork.Product.Create(product);
 
             await _unitOfWork.SaveChangesAsync();
@@ -87,13 +97,17 @@ namespace Products.Application.Services
                 .IsCategoryExists(categoryId);
 
             if (!categoryExists)
-                return new Error(nameof(CategoryErrors.CategoryNotFound), CategoryErrors.CategoryNotFound);
+            {
+                return CategoryErrors.NotFound(categoryId);
+            }
 
             var productDb = await _unitOfWork.Product
                 .FindProductByIdAsync(categoryId, productId, trackChanges: true);
 
             if (productDb is null)
-                return new Error(nameof(ProductErrors.ProductNotFound), ProductErrors.ProductNotFound);
+            {
+                return ProductErrors.NotFound(productId);
+            }
 
             productDb = _mapper.Map(productDto, productDb);
             productDb.SetModified();
@@ -109,16 +123,18 @@ namespace Products.Application.Services
                 .IsCategoryExists(categoryId);
 
             if (!categoryExists)
-                return new Error(nameof(CategoryErrors.CategoryNotFound), CategoryErrors.CategoryNotFound);
+            {
+                return CategoryErrors.NotFound(categoryId);
+            }
 
-            var productExist = await _unitOfWork.Product.IsProductExists(categoryId, productId);
+            var productExist = await _unitOfWork.Product
+                .IsProductExists(categoryId, productId);
 
             if (!productExist)
-                return new Error(nameof(ProductErrors.ProductNotFound), ProductErrors.ProductNotFound);
+            {
+                return ProductErrors.NotFound(productId);
+            }
 
-            //var productToDelete = new Product { Id = productId };
-
-            //_unitOfWork.Product.Attach(productToDelete);
             _unitOfWork.Product.Delete(new Product { Id = productId });
 
             await _unitOfWork.SaveChangesAsync();
